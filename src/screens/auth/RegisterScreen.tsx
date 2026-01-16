@@ -1,0 +1,362 @@
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+
+import Button from '../../components/Button';
+
+import {
+  resetAuthState,
+  registerError as setRegisterError,
+} from '../../store/authSlice';
+import { registerService } from '../../services/authService';
+import { RootState } from '../../store';
+
+const COLORS = {
+  primary: '#3B82F6',
+  secondary: '#10B981',
+  danger: '#EF4444',
+  background: '#F9FAFB',
+  card: '#FFFFFF',
+  text: '#1F2937',
+  textSecondary: '#6B7280',
+  border: '#E5E7EB',
+};
+
+export default function RegisterScreen({ navigation }: any) {
+  const dispatch = useDispatch();
+  const { loading, registerError, isLoggedIn } = useSelector(
+    (state: RootState) => state.auth,
+  );
+
+  // ✅ Semua hooks HARUS dipanggil unconditionally
+  const [namaUser, setNamaUser] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  useEffect(() => {
+    dispatch(resetAuthState());
+  }, []);
+
+  const showError = (message: string) => {
+    dispatch(setRegisterError(message));
+  };
+
+  // ✅ useEffect HARUS ada sebelum conditional logic
+  useEffect(() => {
+    if (isLoggedIn) {
+      navigation.replace('MainTab');
+    }
+  }, [isLoggedIn, navigation]);
+
+  const handleRegister = async () => {
+    if (
+      !namaUser.trim() ||
+      !email.trim() ||
+      !password.trim() ||
+      !confirmPassword.trim()
+    ) {
+      Alert.alert('Validasi', 'Semua field wajib diisi');
+      showError('Semua field wajib diisi');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert('Validasi', 'Email tidak valid');
+      showError('Email tidak valid');
+      return;
+    }
+
+    if (password.length < 8) {
+      Alert.alert('Validasi', 'Password minimal 8 karakter');
+      showError('Password minimal 8 karakter');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert('Validasi', 'Password dan konfirmasi tidak sama');
+      showError('Password dan konfirmasi tidak sama');
+      return;
+    }
+
+    try {
+      await registerService({
+        nama_user: namaUser.trim(),
+        email: email.trim(),
+        password,
+      });
+
+      Alert.alert('Sukses', 'Akun berhasil dibuat, silakan login');
+      // Jika registrasi sukses, langsung redirect ke login
+      navigation.replace('Login');
+    } catch (err: any) {
+      dispatch(
+        setRegisterError(err?.response?.data?.message || 'Registrasi gagal'),
+      );
+      Alert.alert(
+        'Error',
+        err?.response?.data?.message || 'Terjadi kesalahan saat registrasi',
+      );
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Header */}
+        <View style={styles.headerSection}>
+          <View style={styles.iconCircle}>
+            <MaterialIcons
+              name="person-add"
+              size={48}
+              color={COLORS.secondary}
+            />
+          </View>
+          <Text style={styles.title}>Buat Akun</Text>
+          <Text style={styles.subtitle}>Daftar untuk memulai</Text>
+        </View>
+
+        {/* Form */}
+        <View style={styles.formSection}>
+          {/* Nama */}
+          <Text style={styles.label}>Nama Lengkap</Text>
+          <View style={styles.inputWrapper}>
+            <MaterialIcons
+              name="person"
+              size={18}
+              color={COLORS.textSecondary}
+              style={styles.inputIcon}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Nama lengkap Anda"
+              placeholderTextColor={COLORS.textSecondary}
+              value={namaUser}
+              onChangeText={setNamaUser}
+              editable={!loading}
+            />
+          </View>
+
+          {/* Email */}
+          <Text style={[styles.label, { marginTop: 8 }]}>Email</Text>
+          <View style={styles.inputWrapper}>
+            <MaterialIcons
+              name="email"
+              size={18}
+              color={COLORS.textSecondary}
+              style={styles.inputIcon}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Email"
+              placeholderTextColor={COLORS.textSecondary}
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              editable={!loading}
+              keyboardType="email-address"
+            />
+          </View>
+
+          {/* Password */}
+          <Text style={[styles.label, { marginTop: 8 }]}>Password</Text>
+          <View style={styles.inputWrapper}>
+            <MaterialIcons
+              name="lock"
+              size={18}
+              color={COLORS.textSecondary}
+              style={styles.inputIcon}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Minimal 8 karakter"
+              placeholderTextColor={COLORS.textSecondary}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              editable={!loading}
+            />
+            <TouchableOpacity
+              onPress={() => setShowPassword(!showPassword)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <MaterialIcons
+                name={showPassword ? 'visibility' : 'visibility-off'}
+                size={18}
+                color={COLORS.textSecondary}
+              />
+            </TouchableOpacity>
+          </View>
+
+          {/* Confirm Password */}
+          <Text style={[styles.label, { marginTop: 8 }]}>
+            Konfirmasi Password
+          </Text>
+          <View style={styles.inputWrapper}>
+            <MaterialIcons
+              name="lock"
+              size={18}
+              color={COLORS.textSecondary}
+              style={styles.inputIcon}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Ulangi password"
+              placeholderTextColor={COLORS.textSecondary}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry={!showConfirmPassword}
+              editable={!loading}
+            />
+            <TouchableOpacity
+              onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <MaterialIcons
+                name={showConfirmPassword ? 'visibility' : 'visibility-off'}
+                size={18}
+                color={COLORS.textSecondary}
+              />
+            </TouchableOpacity>
+          </View>
+
+          {/* Error Message */}
+          {registerError && (
+            <View style={styles.errorContainer}>
+              <MaterialIcons name="error" size={16} color={COLORS.danger} />
+              <Text style={styles.errorMessage}>{registerError}</Text>
+            </View>
+          )}
+
+          <Button title="Daftar" onPress={handleRegister} loading={loading} />
+        </View>
+
+        {/* Footer */}
+        <View style={styles.footerSection}>
+          <Text style={styles.footerText}>Sudah punya akun? </Text>
+          <TouchableOpacity
+            onPress={() => {
+              console.log('Navigate to Login');
+              navigation.navigate('Login');
+            }}
+          >
+            <Text style={styles.linkText}>Masuk di sini</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+  },
+  headerSection: {
+    alignItems: 'center',
+    marginBottom: 32,
+    marginTop: 24,
+  },
+  iconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#DCFCE7',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+  },
+  formSection: {
+    marginBottom: 32,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: 8,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 2,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 10,
+    backgroundColor: COLORS.card,
+    marginBottom: 12,
+  },
+  inputIcon: {
+    marginRight: 10,
+  },
+  input: {
+    flex: 1,
+    paddingVertical: 12,
+    fontSize: 15,
+    color: COLORS.text,
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 16,
+    borderRadius: 8,
+    backgroundColor: '#FEE2E2',
+    borderLeftWidth: 4,
+    borderLeftColor: COLORS.danger,
+    gap: 8,
+  },
+  errorMessage: {
+    flex: 1,
+    fontSize: 13,
+    color: COLORS.danger,
+    fontWeight: '500',
+  },
+  footerSection: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  footerText: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+  },
+  linkText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.primary,
+  },
+});
