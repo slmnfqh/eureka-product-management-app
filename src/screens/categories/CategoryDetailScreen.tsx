@@ -10,16 +10,7 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Button from '../../components/Button';
 
-const COLORS = {
-  primary: '#3B82F6',
-  danger: '#EF4444',
-  background: '#F9FAFB',
-  card: '#FFFFFF',
-  text: '#1F2937',
-  textSecondary: '#6B7280',
-  border: '#E5E7EB',
-  shadow: '#000000',
-};
+import { COLORS } from '../../constants/colors';
 
 export default function CategoryDetailScreen({ route, navigation }: any) {
   const { category } = route.params;
@@ -104,8 +95,9 @@ export default function CategoryDetailScreen({ route, navigation }: any) {
           <TouchableOpacity
             style={styles.editButton}
             onPress={() => {
-              // Navigasi balik ke list dengan trigger modal edit
-              // Atau handle edit logic di sini
+              navigation.navigate('CategoryList', {
+                editCategory: category,
+              });
             }}
           >
             <Ionicons name="pencil" size={18} color={COLORS.primary} />
@@ -177,7 +169,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     color: COLORS.text,
-    textTransform: 'capitalize',
   },
   categoryId: {
     fontSize: 14,

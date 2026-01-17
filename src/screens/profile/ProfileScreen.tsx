@@ -17,17 +17,7 @@ import { clearAuth } from '../../utils/storage';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
 
-const COLORS = {
-  primary: '#3B82F6',
-  secondary: '#10B981',
-  danger: '#EF4444',
-  background: '#F9FAFB',
-  card: '#FFFFFF',
-  text: '#1F2937',
-  textSecondary: '#6B7280',
-  border: '#E5E7EB',
-  shadow: '#000000',
-};
+import { COLORS } from '../../constants/colors';
 
 export default function ProfileScreen() {
   const dispatch = useDispatch();

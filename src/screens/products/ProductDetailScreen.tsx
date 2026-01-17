@@ -12,17 +12,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import Button from '../../components/Button';
 
-const COLORS = {
-  primary: '#3B82F6',
-  secondary: '#10B981',
-  danger: '#EF4444',
-  background: '#F9FAFB',
-  card: '#FFFFFF',
-  text: '#1F2937',
-  textSecondary: '#6B7280',
-  border: '#E5E7EB',
-  shadow: '#000000',
-};
+import { COLORS, getCategoryColor } from '../../constants/colors';
 
 export default function ProductDetailScreen({ route, navigation }: any) {
   const { product } = route.params;
@@ -76,8 +66,23 @@ export default function ProductDetailScreen({ route, navigation }: any) {
               <Text style={styles.productName}>{product.nama_produk}</Text>
               <Text style={styles.productCode}>{product.kode_produk}</Text>
             </View>
-            <View style={styles.categoryBadgeDetail}>
-              <Text style={styles.categoryTextDetail}>
+            <View
+              style={[
+                styles.categoryBadgeDetail,
+                {
+                  backgroundColor: getCategoryColor(product.nama_kategori)
+                    .badge,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.categoryTextDetail,
+                  {
+                    color: getCategoryColor(product.nama_kategori).text,
+                  },
+                ]}
+              >
                 {product.nama_kategori || 'Tanpa kategori'}
               </Text>
             </View>
@@ -131,7 +136,10 @@ export default function ProductDetailScreen({ route, navigation }: any) {
             <TouchableOpacity
               style={styles.editButton}
               onPress={() => {
-                // TODO: Implement edit navigation with product data
+                // LANGSUNG ke ProductList karena berada di stack yang sama
+                navigation.navigate('ProductList', {
+                  editProduct: product,
+                });
               }}
             >
               <Ionicons name="pencil" size={18} color={COLORS.primary} />
@@ -198,7 +206,6 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
   },
   categoryBadgeDetail: {
-    backgroundColor: '#DBEAFE',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
@@ -206,7 +213,6 @@ const styles = StyleSheet.create({
   categoryTextDetail: {
     fontSize: 12,
     fontWeight: '600',
-    color: COLORS.primary,
   },
   detailCard: {
     backgroundColor: COLORS.card,

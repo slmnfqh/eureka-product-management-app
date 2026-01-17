@@ -20,16 +20,7 @@ import {
 import { registerService } from '../../services/authService';
 import { RootState } from '../../store';
 
-const COLORS = {
-  primary: '#3B82F6',
-  secondary: '#10B981',
-  danger: '#EF4444',
-  background: '#F9FAFB',
-  card: '#FFFFFF',
-  text: '#1F2937',
-  textSecondary: '#6B7280',
-  border: '#E5E7EB',
-};
+import { COLORS } from '../../constants/colors';
 
 export default function RegisterScreen({ navigation }: any) {
   const dispatch = useDispatch();

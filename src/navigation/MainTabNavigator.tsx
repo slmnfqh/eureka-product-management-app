@@ -38,8 +38,8 @@ const MainTabNavigator = () => {
           backgroundColor: '#FFFFFF',
           borderTopWidth: 1,
           borderTopColor: '#E5E7EB',
-          height: 64, // ⬅️ default dinaikkan
-          paddingBottom: 10, // ⬅️ ini yang bikin tab naik
+          height: 64,
+          paddingBottom: 10,
           paddingTop: 6,
         },
       })}

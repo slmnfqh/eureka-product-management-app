@@ -11,7 +11,7 @@ interface ButtonProps {
   onPress: () => void;
   loading?: boolean;
   disabled?: boolean;
-  variant?: 'primary' | 'danger'; // ← TAMBAHKAN INI
+  variant?: 'primary' | 'danger';
 }
 
 export default function Button({
@@ -19,7 +19,7 @@ export default function Button({
   onPress,
   loading = false,
   disabled = false,
-  variant = 'primary', // ← TAMBAHKAN INI
+  variant = 'primary',
 }: ButtonProps) {
   const backgroundColor = variant === 'danger' ? '#EF4444' : '#3B82F6';
 

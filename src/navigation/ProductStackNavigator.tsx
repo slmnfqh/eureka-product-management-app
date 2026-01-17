@@ -8,19 +8,11 @@ export default function ProductStackNavigator() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerShown: false, // ← TAMBAHKAN INI
+        headerShown: false,
       }}
     >
-      <Stack.Screen
-        name="ProductList"
-        component={ProductScreen}
-        // ← HAPUS options={{ title: 'Produk' }}
-      />
-      <Stack.Screen
-        name="ProductDetail"
-        component={ProductDetailScreen}
-        // ← HAPUS options={{ title: 'Detail Produk' }}
-      />
+      <Stack.Screen name="ProductList" component={ProductScreen} />
+      <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
     </Stack.Navigator>
   );
 }

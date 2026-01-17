@@ -32,12 +32,12 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FloatingButtonAdd from '../../components/FloatingButtonAdd';
 import Input from '../../components/Input';
 
-import { COLORS } from '../../constants/colors';
+import { COLORS, getStockStatus } from '../../constants/colors';
 
 import { getProduk } from '../../services/productService';
 import { useFocusEffect } from '@react-navigation/native';
 
-export default function StockScreen({ navigation }: any) {
+export default function StockScreen({ navigation, route }: any) {
   const dispatch = useDispatch();
   const { items, loading, error } = useSelector(
     (state: RootState) => state.stocks,
@@ -171,7 +171,18 @@ export default function StockScreen({ navigation }: any) {
     useCallback(() => {
       loadStok();
       loadProdukList();
-    }, []),
+
+      const editStock = route?.params?.editStock;
+      if (editStock) {
+        setIdProduk(String(editStock.id_produk));
+        setJumlahBarang(String(editStock.jumlah_barang));
+        setEditingId(editStock.id_stok);
+        setShowModal(true);
+
+        // bersihin param biar ga kebuka lagi saat balik2
+        navigation.setParams({ editStock: undefined });
+      }
+    }, [route?.params?.editStock]),
   );
 
   return (
@@ -509,10 +520,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
-  modalTitle: { fontSize: 18, fontFamily: 'Poppins-Bold', color: COLORS.text },
+  modalTitle: { fontSize: 18, fontWeight: '700', color: COLORS.text },
   closeButton: {
     fontSize: 16,
-    fontFamily: 'Poppins-SemiBold',
+    fontWeight: '600',
     color: COLORS.primary,
   },
   formContent: { padding: 16 },

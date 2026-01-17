@@ -10,18 +10,7 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Button from '../../components/Button';
 
-const COLORS = {
-  primary: '#3B82F6',
-  secondary: '#10B981',
-  warning: '#F59E0B',
-  danger: '#EF4444',
-  background: '#F9FAFB',
-  card: '#FFFFFF',
-  text: '#1F2937',
-  textSecondary: '#6B7280',
-  border: '#E5E7EB',
-  shadow: '#000000',
-};
+import { COLORS, getStockStatus } from '../../constants/colors';
 
 export default function StockDetailScreen({ route, navigation }: any) {
   const stock = route.params?.stock;
@@ -34,16 +23,6 @@ export default function StockDetailScreen({ route, navigation }: any) {
       </View>
     );
   }
-
-  const getStockStatus = (quantity: number) => {
-    if (quantity === 0) {
-      return { label: 'Habis', color: COLORS.danger, bgColor: '#FEE2E2' };
-    } else if (quantity < 10) {
-      return { label: 'Minim', color: COLORS.warning, bgColor: '#FEF3C7' };
-    } else {
-      return { label: 'Tersedia', color: COLORS.secondary, bgColor: '#DCFCE7' };
-    }
-  };
 
   const stockStatus = getStockStatus(stock.jumlah_barang);
 
@@ -140,7 +119,11 @@ export default function StockDetailScreen({ route, navigation }: any) {
         <View style={styles.actionSection}>
           <TouchableOpacity
             style={styles.editButton}
-            onPress={() => Alert.alert('Edit', 'Fungsi edit segera hadir')}
+            onPress={() => {
+              navigation.navigate('StockList', {
+                editStock: stock,
+              });
+            }}
           >
             <Ionicons name="pencil" size={18} color={COLORS.primary} />
             <Text style={styles.editButtonText}>Edit Stok</Text>

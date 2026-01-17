@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  TextInput,
   Modal,
   ScrollView,
   ActivityIndicator,
@@ -16,6 +15,8 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 import Button from '../../components/Button';
+import FloatingButtonAdd from '../../components/FloatingButtonAdd';
+import Input from '../../components/Input';
 
 import {
   fetchCategoryStart,
@@ -30,12 +31,11 @@ import {
   getKategori,
   updateKategori,
 } from '../../services/categoryService';
-import FloatingButtonAdd from '../../components/FloatingButtonAdd';
-import Input from '../../components/Input';
 
-import { COLORS } from '../../constants/colors';
+import { COLORS, getCategoryColor } from '../../constants/colors';
+import { useFocusEffect } from '@react-navigation/native';
 
-export default function CategoryScreen({ navigation }: any) {
+export default function CategoryScreen({ navigation, route }: any) {
   const dispatch = useDispatch();
   const { items, loading, error } = useSelector(
     (state: RootState) => state.categories,
@@ -142,20 +142,22 @@ export default function CategoryScreen({ navigation }: any) {
     loadKategori();
   }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      const editCategory = route?.params?.editCategory;
+
+      if (editCategory) {
+        handleEdit(editCategory);
+        navigation.setParams({ editCategory: undefined });
+      }
+    }, [route?.params?.editCategory]),
+  );
+
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Kategori</Text>
-        {/* <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => {
-            resetForm();
-            setShowModal(true);
-          }}
-        >
-          <Ionicons name="add" size={24} color="#fff" />
-        </TouchableOpacity> */}
       </View>
 
       {/* Error Message */}
@@ -180,42 +182,82 @@ export default function CategoryScreen({ navigation }: any) {
             }
             return `category-${index}`;
           }}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.card}
-              onPress={() =>
-                navigation.navigate('CategoryDetail', { category: item })
-              }
-            >
-              <View style={styles.cardContent}>
-                <View style={styles.iconWrapper}>
-                  <Ionicons name="folder" size={24} color={COLORS.primary} />
-                </View>
-                <Text style={styles.categoryName} numberOfLines={2}>
-                  {item.nama_kategori}
-                </Text>
-              </View>
+          renderItem={({ item }) => {
+            const categoryColors = getCategoryColor(item.nama_kategori || '');
 
-              <View style={styles.cardActions}>
-                <TouchableOpacity
-                  style={styles.iconButton}
-                  onPress={() => handleEdit(item)}
-                >
-                  <MaterialIcons name="edit" size={20} color={COLORS.primary} />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.iconButton}
-                  onPress={() => handleDelete(item.id_kategori)}
-                >
-                  <MaterialIcons
-                    name="delete"
-                    size={20}
-                    color={COLORS.danger}
-                  />
-                </TouchableOpacity>
-              </View>
-            </TouchableOpacity>
-          )}
+            return (
+              <TouchableOpacity
+                style={styles.card}
+                onPress={() =>
+                  navigation.navigate('CategoryDetail', { category: item })
+                }
+              >
+                <View style={styles.cardContent}>
+                  <View
+                    style={[
+                      styles.iconWrapper,
+                      { backgroundColor: categoryColors.bg },
+                    ]}
+                  >
+                    <Ionicons
+                      name="folder"
+                      size={24}
+                      color={categoryColors.text}
+                    />
+                  </View>
+                  <View style={styles.categoryInfo}>
+                    <Text style={styles.categoryName} numberOfLines={1}>
+                      {item.nama_kategori}
+                    </Text>
+                    <View
+                      style={[
+                        styles.categoryBadge,
+                        { backgroundColor: categoryColors.badge },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.categoryBadgeText,
+                          { color: categoryColors.text },
+                        ]}
+                      >
+                        ID: {item.id_kategori}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                <View style={styles.cardActions}>
+                  <TouchableOpacity
+                    style={styles.iconButton}
+                    onPress={e => {
+                      e.stopPropagation();
+                      handleEdit(item);
+                    }}
+                  >
+                    <MaterialIcons
+                      name="edit"
+                      size={20}
+                      color={COLORS.primary}
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.iconButton}
+                    onPress={e => {
+                      e.stopPropagation();
+                      handleDelete(item.id_kategori);
+                    }}
+                  >
+                    <MaterialIcons
+                      name="delete"
+                      size={20}
+                      color={COLORS.danger}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
+            );
+          }}
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
@@ -231,6 +273,7 @@ export default function CategoryScreen({ navigation }: any) {
           }
         />
       )}
+
       <FloatingButtonAdd
         onPress={() => {
           resetForm();
@@ -257,16 +300,12 @@ export default function CategoryScreen({ navigation }: any) {
           </View>
 
           <ScrollView style={styles.formContent}>
-            <Text style={styles.formLabel}>Nama Kategori *</Text>
-            <TextInput
-              style={styles.textInput}
+            <Input
+              label="Nama Kategori *"
               placeholder="Masukkan nama kategori"
               value={namaKategori}
               onChangeText={setNamaKategori}
-              placeholderTextColor={COLORS.textSecondary}
             />
-
-            <View style={{ height: 24 }} />
           </ScrollView>
 
           <View style={styles.formActions}>
@@ -302,19 +341,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.text,
   },
-  addButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: COLORS.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 4,
-    shadowColor: COLORS.shadow,
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-  },
   errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -341,7 +367,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: 12,
-    paddingBottom: 24,
+    paddingBottom: 100,
   },
   card: {
     flexDirection: 'row',
@@ -366,15 +392,27 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 12,
-    backgroundColor: '#EFF6FF',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  categoryName: {
+  categoryInfo: {
     flex: 1,
+  },
+  categoryName: {
     fontSize: 16,
     fontWeight: '600',
     color: COLORS.text,
+    marginBottom: 4,
+  },
+  categoryBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  categoryBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
   },
   cardActions: {
     flexDirection: 'row',
@@ -428,23 +466,6 @@ const styles = StyleSheet.create({
   formContent: {
     flex: 1,
     padding: 16,
-  },
-  formLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: 8,
-    marginTop: 16,
-  },
-  textInput: {
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 8,
-    fontSize: 15,
-    color: COLORS.text,
-    backgroundColor: COLORS.card,
   },
   formActions: {
     paddingHorizontal: 16,

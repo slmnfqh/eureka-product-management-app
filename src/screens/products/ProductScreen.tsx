@@ -33,13 +33,13 @@ import {
   deleteProduk,
 } from '../../services/productService';
 
-import { COLORS } from '../../constants/colors';
+import { COLORS, getCategoryColor } from '../../constants/colors';
 
 import { getKategori } from '../../services/categoryService';
 import { useFocusEffect } from '@react-navigation/native';
 import { Kategori } from '../../types/category';
 
-export default function ProductScreen({ navigation }: any) {
+export default function ProductScreen({ navigation, route }: any) {
   const dispatch = useDispatch();
   const { items, loading, error } = useSelector(
     (state: RootState) => state.products,
@@ -183,14 +183,27 @@ export default function ProductScreen({ navigation }: any) {
   }, [selectedCategory, categories]);
 
   const selectedCategoryName = selectedCategory
-    ? categories.find(c => c.id_kategori === selectedCategory)?.nama_kategori ||
-      'Pilih Kategori'
+    ? categories.length > 0
+      ? categories.find(c => c.id_kategori === selectedCategory)
+          ?.nama_kategori ?? 'Memuat kategori...'
+      : 'Memuat kategori...'
     : 'Pilih Kategori';
 
   useFocusEffect(
     useCallback(() => {
-      loadKategori();
+      loadProduk();
     }, []),
+  );
+
+  // ✅ TAMBAHKAN useFocusEffect UNTUK HANDLE EDIT DARI DETAIL
+  useFocusEffect(
+    useCallback(() => {
+      const editProduct = route?.params?.editProduct;
+      if (editProduct) {
+        handleEdit(editProduct);
+        navigation.setParams({ editProduct: undefined });
+      }
+    }, [route?.params?.editProduct]),
   );
 
   return (
@@ -246,8 +259,21 @@ export default function ProductScreen({ navigation }: any) {
                   {item.nama_produk}
                 </Text>
                 <Text style={styles.productCode}>{item.kode_produk}</Text>
-                <View style={styles.categoryBadge}>
-                  <Text style={styles.categoryText}>
+                <View
+                  style={[
+                    styles.categoryBadge,
+                    {
+                      backgroundColor: getCategoryColor(item.nama_kategori)
+                        .badge,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.categoryText,
+                      { color: getCategoryColor(item.nama_kategori).text },
+                    ]}
+                  >
                     {item.nama_kategori || 'Tanpa kategori'}
                   </Text>
                 </View>
@@ -322,7 +348,7 @@ export default function ProductScreen({ navigation }: any) {
             <TouchableOpacity
               style={[styles.categorySelector, { marginBottom: 18 }]}
               onPress={async () => {
-                await loadKategori(); // ⬅️ REFRESH SAAT BUKA MODAL
+                await loadKategori();
                 setShowCategoryModal(true);
               }}
             >
@@ -424,6 +450,12 @@ export default function ProductScreen({ navigation }: any) {
                   styles.categoryItem,
                   selectedCategory === item.id_kategori &&
                     styles.categoryItemSelected,
+                  {
+                    backgroundColor: getCategoryColor(item.nama_kategori).bg,
+                    borderLeftWidth:
+                      selectedCategory === item.id_kategori ? 4 : 0,
+                    borderLeftColor: getCategoryColor(item.nama_kategori).text,
+                  },
                 ]}
                 onPress={() => {
                   setSelectedCategory(item.id_kategori);
@@ -433,8 +465,11 @@ export default function ProductScreen({ navigation }: any) {
                 <Text
                   style={[
                     styles.categoryItemText,
-                    selectedCategory === item.id_kategori &&
-                      styles.categoryItemTextSelected,
+                    {
+                      color: getCategoryColor(item.nama_kategori).text,
+                      fontWeight:
+                        selectedCategory === item.id_kategori ? '700' : '500',
+                    },
                   ]}
                 >
                   {item.nama_kategori}
@@ -443,7 +478,7 @@ export default function ProductScreen({ navigation }: any) {
                   <MaterialIcons
                     name="check-circle"
                     size={20}
-                    color={COLORS.primary}
+                    color={getCategoryColor(item.nama_kategori).text}
                   />
                 )}
               </TouchableOpacity>
@@ -543,15 +578,13 @@ const styles = StyleSheet.create({
   },
   categoryBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: '#DBEAFE',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
   },
   categoryText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: COLORS.primary,
+    fontSize: 12,
+    fontWeight: '700',
   },
   cardActions: {
     flexDirection: 'row',
@@ -681,19 +714,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-    backgroundColor: COLORS.card,
-    marginBottom: 8,
-    borderRadius: 8,
+    marginBottom: 10,
+    borderRadius: 10,
   },
   categoryItemSelected: {
-    backgroundColor: '#EFF6FF',
+    // backgroundColor: '#EFF6FF',
   },
   categoryItemText: {
     fontSize: 15,
-    color: COLORS.text,
-    fontWeight: '500',
   },
   categoryItemTextSelected: {
     fontWeight: '600',
