@@ -6,13 +6,13 @@ Aplikasi mobile untuk mengelola inventaris produk dan kategori menggunakan React
 
 ## 📱 Demo Video & Screenshots
 
-* **Link Video Demo:** [Tonton di YouTube](https://www.youtube.com/watch?v=QpiD4cQIJwU)
+* **Link Video Demo:** [👉Tonton di YouTube](https://www.youtube.com/watch?v=QpiD4cQIJwU)
 
 * **Screenshot Utama:**
 
     | Login | Register | Product | Category | Stock | Profile |
     |-------|----------|---------|----------|-------|---------|
-    | ![Login](https://via.placeholder.com/200x400?text=Login) | ![Register](https://via.placeholder.com/200x400?text=Products) | ![Products](https://via.placeholder.com/200x400?text=Products) | ![Category](https://via.placeholder.com/200x400?text=Products) | ![Stock](https://via.placeholder.com/200x400?text=Stock) | ![Profile](https://via.placeholder.com/200x400?text=Profile) |
+    | ![Login](https://github.com/slmnfqh/eureka-product-management-app/blob/main/assetReadMe/login.png) | ![Register](https://github.com/slmnfqh/eureka-product-management-app/blob/main/assetReadMe/register.png) | ![Products](https://github.com/slmnfqh/eureka-product-management-app/blob/main/assetReadMe/product.png) | ![Category](https://github.com/slmnfqh/eureka-product-management-app/blob/main/assetReadMe/category.png) | ![Stock](https://github.com/slmnfqh/eureka-product-management-app/blob/main/assetReadMe/stock.png) | ![Profile](https://github.com/slmnfqh/eureka-product-management-app/blob/main/assetReadMe/profile.png) |
 
 ---
 
