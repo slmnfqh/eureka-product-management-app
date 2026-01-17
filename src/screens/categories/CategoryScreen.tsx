@@ -126,7 +126,7 @@ export default function CategoryScreen({ navigation, route }: any) {
 
             if (rawMessage.includes('foreign key constraint fails')) {
               userFriendlyMessage =
-                'Kategori tidak bisa dihapus karena masih ada produk yang menggunakan kategori ini. Hapus atau pindahkan produknya terlebih dahulu.';
+                'Kategori tidak bisa dihapus karena masih ada produk yang menggunakan kategori ini.';
             } else if (rawMessage) {
               userFriendlyMessage = rawMessage;
             }

@@ -180,10 +180,22 @@ export default function ProductScreen({ navigation, route }: any) {
             Alert.alert('Sukses', 'Produk berhasil dihapus');
             loadProduk();
           } catch (err: any) {
-            Alert.alert(
-              'Error',
-              err?.response?.data?.message || 'Gagal menghapus produk',
-            );
+            const rawMessage = err?.response?.data?.message || '';
+            console.log('Raw Error Delete Produk:', rawMessage);
+
+            // Logika pesan user-friendly untuk Produk
+            let userFriendlyMessage =
+              'Gagal menghapus produk. Silakan coba lagi.';
+
+            if (rawMessage.includes('foreign key constraint fails')) {
+              // Karena produk direferensikan oleh stok, pesan disesuaikan:
+              userFriendlyMessage =
+                'Produk tidak bisa dihapus karena masih ada data stok yang menggunakan id product ini.';
+            } else if (rawMessage) {
+              userFriendlyMessage = rawMessage;
+            }
+
+            Alert.alert('Gagal Menghapus', userFriendlyMessage);
           }
         },
       },
