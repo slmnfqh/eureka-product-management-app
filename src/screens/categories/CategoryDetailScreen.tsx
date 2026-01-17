@@ -11,8 +11,15 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import Button from '../../components/Button';
 
 import { COLORS } from '../../constants/colors';
+import { useDispatch } from 'react-redux';
+import { deleteKategori, getKategori } from '../../services/categoryService';
+import {
+  fetchCategoryStart,
+  fetchCategorySuccess,
+} from '../../store/categorySlice';
 
 export default function CategoryDetailScreen({ route, navigation }: any) {
+  const dispatch = useDispatch();
   const { category } = route.params;
 
   if (!category) {
@@ -32,9 +39,32 @@ export default function CategoryDetailScreen({ route, navigation }: any) {
         {
           text: 'Hapus',
           style: 'destructive',
-          onPress: () => {
-            // TODO: Panggil deleteKategori service & dispatch redux
-            navigation.goBack();
+          onPress: async () => {
+            try {
+              await deleteKategori(category.id_kategori);
+
+              // Refresh Redux state setelah delete
+              dispatch(fetchCategoryStart());
+              const data = await getKategori();
+              dispatch(fetchCategorySuccess(data));
+
+              Alert.alert('Sukses', 'Kategori berhasil dihapus');
+              navigation.goBack();
+            } catch (err: any) {
+              const rawMessage = err?.response?.data?.message || '';
+
+              let userFriendlyMessage =
+                'Gagal menghapus kategori. Silakan coba lagi.';
+
+              if (rawMessage.includes('foreign key constraint fails')) {
+                userFriendlyMessage =
+                  'Kategori tidak bisa dihapus karena masih ada produk yang menggunakan kategori ini. Hapus atau pindahkan produknya terlebih dahulu.';
+              } else if (rawMessage) {
+                userFriendlyMessage = rawMessage;
+              }
+
+              Alert.alert('Perhatian', userFriendlyMessage);
+            }
           },
         },
       ],

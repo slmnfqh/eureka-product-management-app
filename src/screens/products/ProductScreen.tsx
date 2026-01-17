@@ -25,6 +25,13 @@ import {
   fetchProductError,
 } from '../../store/productSlice';
 
+// ← IMPORT CATEGORY ACTIONS
+import {
+  fetchCategoryStart,
+  fetchCategorySuccess,
+  fetchCategoryError,
+} from '../../store/categorySlice';
+
 import { RootState } from '../../store';
 import {
   getProduk,
@@ -37,12 +44,18 @@ import { COLORS, getCategoryColor } from '../../constants/colors';
 
 import { getKategori } from '../../services/categoryService';
 import { useFocusEffect } from '@react-navigation/native';
-import { Kategori } from '../../types/category';
 
 export default function ProductScreen({ navigation, route }: any) {
   const dispatch = useDispatch();
+
+  // Product state dari Redux
   const { items, loading, error } = useSelector(
     (state: RootState) => state.products,
+  );
+
+  // ← CATEGORY STATE DARI REDUX
+  const { items: categories, loading: categoryLoading } = useSelector(
+    (state: RootState) => state.categories,
   );
 
   const [namaProduk, setNamaProduk] = useState('');
@@ -50,13 +63,13 @@ export default function ProductScreen({ navigation, route }: any) {
   const [foto, setFoto] = useState<any>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
 
-  const [categories, setCategories] = useState<Kategori[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showFormModal, setShowFormModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formMode, setFormMode] = useState<'add' | 'edit'>('add');
 
+  // Load produk
   const loadProduk = async () => {
     dispatch(fetchProductStart());
     try {
@@ -67,11 +80,17 @@ export default function ProductScreen({ navigation, route }: any) {
     }
   };
 
+  // ← REFACTOR LOAD KATEGORI DENGAN REDUX
   const loadKategori = async () => {
+    // Jika sudah ada kategori di Redux, skip
+    if (categories.length > 0) return;
+
+    dispatch(fetchCategoryStart());
     try {
       const data = await getKategori();
-      setCategories(data);
-    } catch {
+      dispatch(fetchCategorySuccess(data));
+    } catch (err: any) {
+      dispatch(fetchCategoryError(err.message || 'Gagal memuat kategori'));
       Alert.alert('Error', 'Gagal memuat kategori');
     }
   };
@@ -171,16 +190,18 @@ export default function ProductScreen({ navigation, route }: any) {
     ]);
   };
 
+  // ← LOAD PRODUK DAN KATEGORI DI AWAL
   useEffect(() => {
     loadProduk();
-    loadKategori();
+    loadKategori(); // Load kategori sekali di awal
   }, []);
 
-  useEffect(() => {
-    console.log('Selected Category:', selectedCategory);
-    console.log('Categories:', categories);
-    console.log('Selected Category Name:', selectedCategoryName);
-  }, [selectedCategory, categories]);
+  // ← HAPUS useEffect console.log yang tidak perlu
+  // useEffect(() => {
+  //   console.log('Selected Category:', selectedCategory);
+  //   console.log('Categories:', categories);
+  //   console.log('Selected Category Name:', selectedCategoryName);
+  // }, [selectedCategory, categories]);
 
   const selectedCategoryName = selectedCategory
     ? categories.length > 0
@@ -195,11 +216,12 @@ export default function ProductScreen({ navigation, route }: any) {
     }, []),
   );
 
-  // ✅ TAMBAHKAN useFocusEffect UNTUK HANDLE EDIT DARI DETAIL
+  // Handle edit dari detail
   useFocusEffect(
     useCallback(() => {
       const editProduct = route?.params?.editProduct;
       if (editProduct) {
+        // ← TIDAK PERLU LOAD KATEGORI LAGI, langsung set form
         handleEdit(editProduct);
         navigation.setParams({ editProduct: undefined });
       }
@@ -211,16 +233,8 @@ export default function ProductScreen({ navigation, route }: any) {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Produk</Text>
-        {/* <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => {
-            resetForm();
-            setShowFormModal(true);
-          }}
-        >
-          <MaterialIcons name="add" size={24} color="#fff" />
-        </TouchableOpacity> */}
       </View>
+
       {/* Error Message */}
       {error && (
         <View style={styles.errorBanner}>
@@ -228,6 +242,7 @@ export default function ProductScreen({ navigation, route }: any) {
           <Text style={styles.errorText}>{error}</Text>
         </View>
       )}
+
       {/* Product List */}
       {loading ? (
         <View style={styles.centerContainer}>
@@ -314,6 +329,7 @@ export default function ProductScreen({ navigation, route }: any) {
           }
         />
       )}
+
       <FloatingButtonAdd
         onPress={() => {
           resetForm();
@@ -321,6 +337,7 @@ export default function ProductScreen({ navigation, route }: any) {
           setShowFormModal(true);
         }}
       />
+
       {/* Form Modal */}
       <Modal visible={showFormModal} animationType="slide" transparent={false}>
         <View style={styles.modalContainer}>
@@ -345,30 +362,33 @@ export default function ProductScreen({ navigation, route }: any) {
           >
             {/* Category Selector */}
             <Text style={styles.formLabel}>Kategori *</Text>
-            <TouchableOpacity
-              style={[styles.categorySelector, { marginBottom: 18 }]}
-              onPress={async () => {
-                await loadKategori();
-                setShowCategoryModal(true);
-              }}
-            >
-              <Text
-                style={[
-                  styles.categorySelectorText,
-                  !selectedCategory && { color: COLORS.textSecondary },
-                ]}
-              >
-                {selectedCategoryName}
-              </Text>
-              <MaterialIcons
-                name="expand-more"
-                size={20}
-                color={COLORS.textSecondary}
+            {categoryLoading ? (
+              <ActivityIndicator
+                color={COLORS.primary}
+                style={{ marginBottom: 18 }}
               />
-            </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={[styles.categorySelector, { marginBottom: 18 }]}
+                onPress={() => setShowCategoryModal(true)}
+              >
+                <Text
+                  style={[
+                    styles.categorySelectorText,
+                    !selectedCategory && { color: COLORS.textSecondary },
+                  ]}
+                >
+                  {selectedCategoryName}
+                </Text>
+                <MaterialIcons
+                  name="expand-more"
+                  size={20}
+                  color={COLORS.textSecondary}
+                />
+              </TouchableOpacity>
+            )}
 
             {/* Product Name */}
-            {/* GANTI NAMA PRODUK KE KOMPONEN INPUT */}
             <Input
               label="Nama Produk *"
               placeholder="Masukkan nama produk"
@@ -376,7 +396,7 @@ export default function ProductScreen({ navigation, route }: any) {
               onChangeText={setNamaProduk}
             />
 
-            {/* Kode Produk: Label sudah include di dalam komponen Input */}
+            {/* Kode Produk */}
             <Input
               label="Kode Produk *"
               placeholder="Masukkan kode produk"
@@ -424,6 +444,7 @@ export default function ProductScreen({ navigation, route }: any) {
           </View>
         </View>
       </Modal>
+
       {/* Category Modal */}
       <Modal
         visible={showCategoryModal}
@@ -491,6 +512,7 @@ export default function ProductScreen({ navigation, route }: any) {
   );
 }
 
+// Styles tetap sama...
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -536,8 +558,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   listContent: {
-    // padding: 12,
-    // paddingBottom: 24,
     padding: 12,
     paddingBottom: 100,
   },
@@ -717,9 +737,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderRadius: 10,
   },
-  categoryItemSelected: {
-    // backgroundColor: '#EFF6FF',
-  },
+  categoryItemSelected: {},
   categoryItemText: {
     fontSize: 15,
   },

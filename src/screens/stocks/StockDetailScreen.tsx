@@ -11,8 +11,12 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import Button from '../../components/Button';
 
 import { COLORS, getStockStatus } from '../../constants/colors';
+import { useDispatch } from 'react-redux';
+import { deleteStok, getStok } from '../../services/stockService';
+import { fetchStockStart, fetchStockSuccess } from '../../store/stockSlice';
 
 export default function StockDetailScreen({ route, navigation }: any) {
+  const dispatch = useDispatch();
   const stock = route.params?.stock;
 
   if (!stock) {
@@ -50,9 +54,22 @@ export default function StockDetailScreen({ route, navigation }: any) {
         {
           text: 'Hapus',
           style: 'destructive',
-          onPress: () => {
-            Alert.alert('Sukses', 'Stok berhasil dihapus');
-            navigation.goBack();
+          onPress: async () => {
+            try {
+              await deleteStok(stock.id_stok);
+
+              // Refresh Redux state setelah delete
+              dispatch(fetchStockStart());
+              const data = await getStok();
+              dispatch(fetchStockSuccess(data));
+
+              Alert.alert('Sukses', 'Stok berhasil dihapus');
+              navigation.goBack();
+            } catch (err: any) {
+              const msg =
+                err?.response?.data?.message || 'Gagal menghapus stok';
+              Alert.alert('Error', msg);
+            }
           },
         },
       ],

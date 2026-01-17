@@ -13,8 +13,15 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import Button from '../../components/Button';
 
 import { COLORS, getCategoryColor } from '../../constants/colors';
+import { deleteProduk, getProduk } from '../../services/productService';
+import { useDispatch } from 'react-redux';
+import {
+  fetchProductStart,
+  fetchProductSuccess,
+} from '../../store/productSlice';
 
 export default function ProductDetailScreen({ route, navigation }: any) {
+  const dispatch = useDispatch();
   const { product } = route.params;
 
   if (!product) {
@@ -31,9 +38,23 @@ export default function ProductDetailScreen({ route, navigation }: any) {
       {
         text: 'Hapus',
         style: 'destructive',
-        onPress: () => {
-          // TODO: Implement delete logic with Redux and services
-          navigation.goBack();
+        onPress: async () => {
+          try {
+            await deleteProduk(product.id_produk);
+
+            // Refresh Redux state setelah delete
+            dispatch(fetchProductStart());
+            const data = await getProduk();
+            dispatch(fetchProductSuccess(data));
+
+            Alert.alert('Sukses', 'Produk berhasil dihapus');
+            navigation.goBack();
+          } catch (err: any) {
+            Alert.alert(
+              'Error',
+              err?.response?.data?.message || 'Gagal menghapus produk',
+            );
+          }
         },
       },
     ]);

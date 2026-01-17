@@ -3,7 +3,17 @@ import { Product } from '../types/product';
 
 export const getProduk = async (): Promise<Product[]> => {
   const res = await api.get('/api/produk');
-  return res.data;
+  /// ✅ Sort by tgl_register descending dengan null safety
+  return res.data.sort((a: Product, b: Product) => {
+    // Handle undefined/null dates
+    const dateA = a.tgl_register ? new Date(a.tgl_register).getTime() : 0;
+    const dateB = b.tgl_register ? new Date(b.tgl_register).getTime() : 0;
+
+    if (dateB !== dateA) {
+      return dateB - dateA; // Sort by date descending
+    }
+    return b.id_produk - a.id_produk; // If same date, sort by ID descending
+  });
 };
 
 export const createProduk = async (formData: FormData) => {

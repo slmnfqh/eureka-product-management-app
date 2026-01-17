@@ -14,7 +14,7 @@ const initialState: CategoryState = {
 };
 
 const categorySlice = createSlice({
-  name: 'category',
+  name: 'categories',
   initialState,
   reducers: {
     fetchCategoryStart(state) {

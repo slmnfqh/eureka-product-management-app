@@ -12,8 +12,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 import Button from '../../components/Button';
+import Input from '../../components/Input';
 
 import {
+  registerStart,
+  registerSuccess,
   resetAuthState,
   registerError as setRegisterError,
 } from '../../store/authSlice';
@@ -82,6 +85,9 @@ export default function RegisterScreen({ navigation }: any) {
       return;
     }
 
+    // ✅ DISPATCH registerStart
+    dispatch(registerStart());
+
     try {
       await registerService({
         nama_user: namaUser.trim(),
@@ -89,8 +95,10 @@ export default function RegisterScreen({ navigation }: any) {
         password,
       });
 
+      // ✅ DISPATCH registerSuccess
+      dispatch(registerSuccess());
+
       Alert.alert('Sukses', 'Akun berhasil dibuat, silakan login');
-      // Jika registrasi sukses, langsung redirect ke login
       navigation.replace('Login');
     } catch (err: any) {
       dispatch(
@@ -125,106 +133,96 @@ export default function RegisterScreen({ navigation }: any) {
         {/* Form */}
         <View style={styles.formSection}>
           {/* Nama */}
-          <Text style={styles.label}>Nama Lengkap</Text>
-          <View style={styles.inputWrapper}>
-            <MaterialIcons
-              name="person"
-              size={18}
-              color={COLORS.textSecondary}
-              style={styles.inputIcon}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Nama lengkap Anda"
-              placeholderTextColor={COLORS.textSecondary}
-              value={namaUser}
-              onChangeText={setNamaUser}
-              editable={!loading}
-            />
-          </View>
+          <Input
+            label="Nama Lengkap"
+            value={namaUser}
+            onChangeText={setNamaUser}
+            placeholder="Nama lengkap Anda"
+            editable={!loading}
+            icon={
+              <MaterialIcons
+                name="person"
+                size={18}
+                color={COLORS.textSecondary}
+              />
+            }
+          />
 
           {/* Email */}
-          <Text style={[styles.label, { marginTop: 8 }]}>Email</Text>
-          <View style={styles.inputWrapper}>
-            <MaterialIcons
-              name="email"
-              size={18}
-              color={COLORS.textSecondary}
-              style={styles.inputIcon}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Email"
-              placeholderTextColor={COLORS.textSecondary}
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              editable={!loading}
-              keyboardType="email-address"
-            />
-          </View>
+          <Input
+            label="Email"
+            value={email}
+            onChangeText={setEmail}
+            placeholder="Email"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            editable={!loading}
+            icon={
+              <MaterialIcons
+                name="email"
+                size={18}
+                color={COLORS.textSecondary}
+              />
+            }
+          />
 
           {/* Password */}
-          <Text style={[styles.label, { marginTop: 8 }]}>Password</Text>
-          <View style={styles.inputWrapper}>
-            <MaterialIcons
-              name="lock"
-              size={18}
-              color={COLORS.textSecondary}
-              style={styles.inputIcon}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Minimal 8 karakter"
-              placeholderTextColor={COLORS.textSecondary}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
-              editable={!loading}
-            />
-            <TouchableOpacity
-              onPress={() => setShowPassword(!showPassword)}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
+          <Input
+            label="Password"
+            value={password}
+            onChangeText={setPassword}
+            placeholder="Minimal 8 karakter"
+            secureTextEntry={!showPassword}
+            editable={!loading}
+            icon={
               <MaterialIcons
-                name={showPassword ? 'visibility' : 'visibility-off'}
+                name="lock"
                 size={18}
                 color={COLORS.textSecondary}
               />
-            </TouchableOpacity>
-          </View>
+            }
+            rightIcon={
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <MaterialIcons
+                  name={showPassword ? 'visibility' : 'visibility-off'}
+                  size={18}
+                  color={COLORS.textSecondary}
+                />
+              </TouchableOpacity>
+            }
+          />
 
           {/* Confirm Password */}
-          <Text style={[styles.label, { marginTop: 8 }]}>
-            Konfirmasi Password
-          </Text>
-          <View style={styles.inputWrapper}>
-            <MaterialIcons
-              name="lock"
-              size={18}
-              color={COLORS.textSecondary}
-              style={styles.inputIcon}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Ulangi password"
-              placeholderTextColor={COLORS.textSecondary}
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry={!showConfirmPassword}
-              editable={!loading}
-            />
-            <TouchableOpacity
-              onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
+          <Input
+            label="Konfirmasi Password"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            placeholder="Ulangi password"
+            secureTextEntry={!showConfirmPassword}
+            editable={!loading}
+            icon={
               <MaterialIcons
-                name={showConfirmPassword ? 'visibility' : 'visibility-off'}
+                name="lock"
                 size={18}
                 color={COLORS.textSecondary}
               />
-            </TouchableOpacity>
-          </View>
+            }
+            rightIcon={
+              <TouchableOpacity
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <MaterialIcons
+                  name={showConfirmPassword ? 'visibility' : 'visibility-off'}
+                  size={18}
+                  color={COLORS.textSecondary}
+                />
+              </TouchableOpacity>
+            }
+          />
 
           {/* Error Message */}
           {registerError && (

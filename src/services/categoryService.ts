@@ -3,7 +3,10 @@ import { Kategori } from '../types/category';
 
 export const getKategori = async (): Promise<Kategori[]> => {
   const res = await api.get('/api/kategori');
-  return res.data;
+  // ✅ Sort by id_kategori descending
+  return res.data.sort(
+    (a: Kategori, b: Kategori) => b.id_kategori - a.id_kategori,
+  );
 };
 
 export const createKategori = async (payload: { nama_kategori: string }) => {

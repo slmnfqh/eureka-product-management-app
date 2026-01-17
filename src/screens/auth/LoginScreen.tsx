@@ -12,6 +12,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 import Button from '../../components/Button';
+import Input from '../../components/Input';
 
 import {
   loginError as setLoginError,
@@ -107,54 +108,50 @@ export default function LoginScreen({ navigation }: any) {
 
         {/* Form */}
         <View style={styles.formSection}>
-          <Text style={styles.label}>Email</Text>
-          <View style={styles.inputWrapper}>
-            <MaterialIcons
-              name="email"
-              size={18}
-              color={COLORS.textSecondary}
-              style={styles.inputIcon}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="example@mail.com"
-              placeholderTextColor={COLORS.textSecondary}
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              editable={!loading}
-              keyboardType="email-address"
-            />
-          </View>
-
-          <Text style={[styles.label, { marginTop: 16 }]}>Password</Text>
-          <View style={styles.inputWrapper}>
-            <MaterialIcons
-              name="lock"
-              size={18}
-              color={COLORS.textSecondary}
-              style={styles.inputIcon}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="••••••••"
-              placeholderTextColor={COLORS.textSecondary}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
-              editable={!loading}
-            />
-            <TouchableOpacity
-              onPress={() => setShowPassword(!showPassword)}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
+          <Input
+            label="Email"
+            value={email}
+            onChangeText={setEmail}
+            placeholder="example@mail.com"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            editable={!loading}
+            icon={
               <MaterialIcons
-                name={showPassword ? 'visibility' : 'visibility-off'}
+                name="email"
                 size={18}
                 color={COLORS.textSecondary}
               />
-            </TouchableOpacity>
-          </View>
+            }
+          />
+
+          <Input
+            label="Password"
+            value={password}
+            onChangeText={setPassword}
+            placeholder="••••••••"
+            secureTextEntry={!showPassword}
+            editable={!loading}
+            icon={
+              <MaterialIcons
+                name="lock"
+                size={18}
+                color={COLORS.textSecondary}
+              />
+            }
+            rightIcon={
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <MaterialIcons
+                  name={showPassword ? 'visibility' : 'visibility-off'}
+                  size={18}
+                  color={COLORS.textSecondary}
+                />
+              </TouchableOpacity>
+            }
+          />
 
           {loginErrorMessage && (
             <View style={styles.errorContainer}>

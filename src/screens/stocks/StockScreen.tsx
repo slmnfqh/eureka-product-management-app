@@ -36,11 +36,23 @@ import { COLORS, getStockStatus } from '../../constants/colors';
 
 import { getProduk } from '../../services/productService';
 import { useFocusEffect } from '@react-navigation/native';
+import {
+  fetchProductError,
+  fetchProductStart,
+  fetchProductSuccess,
+} from '../../store/productSlice';
 
 export default function StockScreen({ navigation, route }: any) {
   const dispatch = useDispatch();
+
+  // Stock state dari Redux
   const { items, loading, error } = useSelector(
     (state: RootState) => state.stocks,
+  );
+
+  // ← AMBIL PRODUCT STATE DARI REDUX
+  const { items: products, loading: productLoading } = useSelector(
+    (state: RootState) => state.products,
   );
 
   const [idProduk, setIdProduk] = useState('');
@@ -49,12 +61,12 @@ export default function StockScreen({ navigation, route }: any) {
   const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const [products, setProducts] = useState<any[]>([]); // State daftar produk
-  const [showProductModal, setShowProductModal] = useState(false); // State Modal Dropdown
+  const [showProductModal, setShowProductModal] = useState(false);
 
+  // Load produk hanya sekali saat component mount
   useEffect(() => {
     loadStok();
-    loadProdukList(); // Panggil saat screen dibuka
+    loadProdukList(); // Load produk di awal
   }, []);
 
   const loadStok = async () => {
@@ -67,12 +79,18 @@ export default function StockScreen({ navigation, route }: any) {
     }
   };
 
+  // ← REFACTOR LOAD PRODUK DENGAN REDUX
   const loadProdukList = async () => {
+    // Jika sudah ada produk di Redux, skip
+    if (products.length > 0) return;
+
+    dispatch(fetchProductStart());
     try {
       const data = await getProduk();
-      setProducts(data);
-    } catch (err) {
-      console.log('Gagal memuat produk');
+      dispatch(fetchProductSuccess(data));
+    } catch (err: any) {
+      dispatch(fetchProductError(err.message || 'Gagal memuat produk'));
+      Alert.alert('Error', 'Gagal memuat produk');
     }
   };
 
@@ -135,31 +153,16 @@ export default function StockScreen({ navigation, route }: any) {
         style: 'destructive',
         onPress: async () => {
           try {
-            await deleteStok(id); // id di sini adalah id_stok
+            await deleteStok(id);
             Alert.alert('Sukses', 'Stok berhasil dihapus');
             loadStok();
           } catch (err: any) {
-            // Tambahkan penanganan pesan error yang lebih rapi
             const msg = err?.response?.data?.message || 'Gagal menghapus stok';
             Alert.alert('Error', msg);
           }
         },
       },
     ]);
-  };
-
-  useEffect(() => {
-    loadStok();
-  }, []);
-
-  const getStockStatus = (quantity: number) => {
-    if (quantity === 0) {
-      return { label: 'Habis', color: COLORS.danger, bgColor: '#FEE2E2' };
-    } else if (quantity < 10) {
-      return { label: 'Minim', color: COLORS.warning, bgColor: '#FEF3C7' };
-    } else {
-      return { label: 'Tersedia', color: COLORS.secondary, bgColor: '#DCFCE7' };
-    }
   };
 
   // Mencari produk berdasarkan ID
@@ -170,16 +173,15 @@ export default function StockScreen({ navigation, route }: any) {
   useFocusEffect(
     useCallback(() => {
       loadStok();
-      loadProdukList();
 
       const editStock = route?.params?.editStock;
       if (editStock) {
+        // ← TIDAK PERLU LOAD LAGI, langsung set form
         setIdProduk(String(editStock.id_produk));
         setJumlahBarang(String(editStock.jumlah_barang));
         setEditingId(editStock.id_stok);
         setShowModal(true);
 
-        // bersihin param biar ga kebuka lagi saat balik2
         navigation.setParams({ editStock: undefined });
       }
     }, [route?.params?.editStock]),
@@ -190,16 +192,8 @@ export default function StockScreen({ navigation, route }: any) {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Stok</Text>
-        {/* <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => {
-            resetForm();
-            setShowModal(true);
-          }}
-        >
-          <Ionicons name="add" size={24} color="#fff" />
-        </TouchableOpacity> */}
       </View>
+
       {/* Error Message */}
       {error && (
         <View style={styles.errorBanner}>
@@ -207,6 +201,7 @@ export default function StockScreen({ navigation, route }: any) {
           <Text style={styles.errorText}>{error}</Text>
         </View>
       )}
+
       {/* Stock List */}
       {loading ? (
         <View style={styles.centerContainer}>
@@ -256,7 +251,7 @@ export default function StockScreen({ navigation, route }: any) {
                   <TouchableOpacity
                     style={styles.iconButton}
                     onPress={e => {
-                      e.stopPropagation(); // Agar saat klik edit, detail tidak terbuka
+                      e.stopPropagation();
                       handleEdit(item);
                     }}
                   >
@@ -269,7 +264,7 @@ export default function StockScreen({ navigation, route }: any) {
                   <TouchableOpacity
                     style={styles.iconButton}
                     onPress={e => {
-                      e.stopPropagation(); // Agar saat klik hapus, detail tidak terbuka
+                      e.stopPropagation();
                       handleDelete(item.id_stok);
                     }}
                   >
@@ -319,34 +314,26 @@ export default function StockScreen({ navigation, route }: any) {
 
           <ScrollView style={styles.formContent}>
             <Text style={styles.formLabel}>Pilih Produk *</Text>
-            <TouchableOpacity
-              style={[styles.categorySelector, { marginBottom: 18 }]}
-              onPress={async () => {
-                await loadProdukList();
-                setShowProductModal(true);
-              }}
-            >
-              <Text
-                style={[
-                  styles.categorySelectorText,
-                  !idProduk && { color: COLORS.textSecondary },
-                ]}
+            {productLoading ? (
+              <ActivityIndicator color={COLORS.primary} />
+            ) : (
+              <TouchableOpacity
+                style={styles.categorySelector}
+                onPress={() => setShowProductModal(true)}
               >
-                {selectedProduct ? selectedProduct.nama_produk : 'Pilih Produk'}
-              </Text>
-              <Ionicons
-                name="chevron-down"
-                size={20}
-                color={COLORS.textSecondary}
-              />
-            </TouchableOpacity>
-
+                <Text>
+                  {selectedProduct
+                    ? selectedProduct.nama_produk
+                    : 'Pilih Produk'}
+                </Text>
+              </TouchableOpacity>
+            )}
             <Input
               label="Jumlah Barang *"
               placeholder="Masukkan jumlah barang"
               value={jumlahBarang}
               onChangeText={setJumlahBarang}
-              keyboardType="numeric" // Supaya keyboard muncul angka saja
+              keyboardType="numeric"
             />
           </ScrollView>
 
