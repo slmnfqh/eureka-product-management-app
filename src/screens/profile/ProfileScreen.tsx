@@ -80,9 +80,9 @@ export default function ProfileScreen() {
               </View>
             </View>
 
-            <View style={styles.divider} />
+            {/* <View style={styles.divider} /> */}
 
-            <View style={styles.infoRow}>
+            {/* <View style={styles.infoRow}>
               <View style={styles.infoIcon}>
                 <Ionicons
                   name="shield-checkmark"
@@ -94,12 +94,12 @@ export default function ProfileScreen() {
                 <Text style={styles.infoLabel}>Status Akun</Text>
                 <Text style={styles.infoValue}>Aktif</Text>
               </View>
-            </View>
+            </View> */}
           </View>
         </View>
 
         {/* Settings Section */}
-        <View style={styles.section}>
+        {/* <View style={styles.section}>
           <Text style={styles.sectionTitle}>Pengaturan</Text>
 
           <TouchableOpacity style={styles.settingItem}>
@@ -137,7 +137,7 @@ export default function ProfileScreen() {
               color={COLORS.textSecondary}
             />
           </TouchableOpacity>
-        </View>
+        </View> */}
 
         {/* Action Section */}
         <View style={styles.actionSection}>
