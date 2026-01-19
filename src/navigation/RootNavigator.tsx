@@ -36,6 +36,7 @@ export default function RootNavigator() {
     );
   }
 
+  // Jika belum login, lempar ke screen AuthNavigator
   return (
     <NavigationContainer>
       {isLoggedIn ? <MainTabNavigator /> : <AuthNavigator />}
